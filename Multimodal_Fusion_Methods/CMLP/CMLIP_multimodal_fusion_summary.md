@@ -223,6 +223,4 @@ $$
 4. **预测层面**：将融合特征送入结合 iTransformer 和 PatchTST 的预测模块，提高多指标水质预测能力。
 5. **实验结果层面**：相比只使用水质时间序列，融合遥感降雨图像后平均预测精度提升约 17%；相比其他融合方法，CMLIP 也取得更好的融合效果。
 
-## 10. 可以用于汇报的精简版
 
-这篇论文面向水质预测任务，认为仅依赖历史水质时间序列难以充分刻画水质变化，因为降雨等气象因素也会显著影响水质指标。为此，作者提出 CMLIP 模型，将水质多指标时间序列与遥感降雨图像进行多模态融合。模型首先利用 iTransformer 与 PatchTST 的思想对水质时间序列进行 indicator token 和 patch 表示，同时采用 ConvNeXt V2 提取遥感降雨图像特征。其核心融合策略是将 Multimodal Bottleneck Transformer 与 Low-rank Multimodal Fusion 结合：前者通过 bottleneck token 实现时间序列和图像模态之间的信息交互，后者通过低秩分解学习不同模态的融合权重，降低参数量和过拟合风险。实验在河北廊坊武村水质监测数据和全球卫星降雨遥感数据上进行，结果表明，融合遥感降雨图像后，模型相比仅使用水质时间序列的预测方式平均精度提升约 17%，并且优于 iTransformer、Autoformer、PatchTST、Crossformer 以及 MBT、LMF、TFN 等对比方法。
