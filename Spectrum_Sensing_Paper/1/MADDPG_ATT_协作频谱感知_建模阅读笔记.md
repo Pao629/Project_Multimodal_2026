@@ -30,13 +30,13 @@
 
 信道状态被建模为两状态 Markov 过程：
 
-```math
+$$
 P^f=
 \begin{bmatrix}
 p_{0,0} & p_{0,1}\\
 p_{1,0} & p_{1,1}
 \end{bmatrix}
-```
+$$
 
 其中，一个信道只有两种状态：
 
@@ -45,9 +45,9 @@ p_{1,0} & p_{1,1}
 
 第 `t` 个时隙的整体信道状态写成：
 
-```math
+$$
 O[t]=[o_1[t],o_2[t],\cdots,o_{N_{fb}}[t]]
-```
+$$
 
 这里 `N_fb` 表示信道数量。这个建模的意思是：频谱环境不是静态的，PU 的占用状态会随时间变化，所以 SU 需要根据历史经验不断调整感知策略。
 
@@ -57,9 +57,9 @@ O[t]=[o_1[t],o_2[t],\cdots,o_{N_{fb}}[t]]
 
 每个 SU 对某个信道进行能量检测。论文中第 `n` 个 SU 在第 `f` 个信道上的接收信号写成：
 
-```math
+$$
 y_{n,f}=\sum_{m=1}^{M}x_{m,f}P_mh_{m,n}+v
-```
+$$
 
 其中：
 
@@ -70,15 +70,15 @@ y_{n,f}=\sum_{m=1}^{M}x_{m,f}P_mh_{m,n}+v
 
 随后，SU 用采样能量构造检测统计量：
 
-```math
+$$
 u_{n,f}=\frac{1}{N_{ED}}\sum_{i=1}^{N_{ED}}|\bar{y}_{n,f}^{i}|^2
-```
+$$
 
 如果检测能量低于阈值 `Γ_n`，就倾向于认为该信道空闲。因此，SU 正确感知空闲信道的概率可以写成：
 
-```math
+$$
 p_n(u_{n,f}\leq \Gamma_n \mid o_f=1)
-```
+$$
 
 这个式子很关键。它说明传统频谱感知本质上是在做“检测统计量与阈值比较”。但在动态、多用户场景下，仅靠当前一次能量检测不够稳定，所以论文把问题转成强化学习：让 SU 学会基于历史和伙伴信息选择更可能空闲的信道。
 
@@ -90,9 +90,9 @@ p_n(u_{n,f}\leq \Gamma_n \mid o_f=1)
 
 第 `n` 个 SU 在时隙 `t` 的动作写成：
 
-```math
+$$
 a_n[t]\in N_f^+
-```
+$$
 
 其中，`a_n[t]=f` 表示 SU 选择感知第 `f` 个信道；`a_n[t]=0` 表示该 SU 保持静默，不感知信道。
 
@@ -104,23 +104,23 @@ a_n[t]\in N_f^+
 
 论文把问题写成：
 
-```math
+$$
 P1:\quad \max_{a_n[t]} \min E[p_n]
-```
+$$
 
 约束包括：
 
-```math
+$$
 o_f[t]\sim MDP(P^f,o_f[t-1])
-```
+$$
 
-```math
+$$
 a_n[t]\in N_f^+
-```
+$$
 
-```math
+$$
 \sum_n I_f(a_n[t])\leq 1
-```
+$$
 
 这几个约束可以这样理解：
 
@@ -140,9 +140,9 @@ a_n[t]\in N_f^+
 
 每个 SU 维护一个“信道置信度”向量：
 
-```math
+$$
 s_n[t]=[b_{n,1},b_{n,2},\cdots,b_{n,N_{fb}}]
-```
+$$
 
 其中 `b_{n,f}` 表示第 `n` 个 SU 对第 `f` 个信道空闲程度的判断。
 
@@ -156,13 +156,13 @@ s_n[t]=[b_{n,1},b_{n,2},\cdots,b_{n,N_{fb}}]
 
 如果某个信道刚被感知过，SU 可以得到一个确定判断：
 
-```math
+$$
 \bar{b}_{n,f}=
 \begin{cases}
 1, & \text{信道被感知为空闲}\\
 0, & \text{信道被感知为占用}
 \end{cases}
-```
+$$
 
 但由于 PU 占用状态会随时间变化，旧的感知结果会逐渐失效。因此论文让置信度向 0.5 衰减。这里的 0.5 可以理解为“完全不确定”。
 
@@ -174,9 +174,9 @@ s_n[t]=[b_{n,1},b_{n,2},\cdots,b_{n,N_{fb}}]
 
 动作就是：
 
-```math
+$$
 a_n[t]
-```
+$$
 
 表示第 `n` 个 SU 在当前时隙选择哪个信道去感知。
 
@@ -188,21 +188,21 @@ a_n[t]
 
 在 Reliable Partner CSS 中，奖励定义很直接：
 
-```math
+$$
 r_n(s_n,a_n)=
 \begin{cases}
 1, & a_n[t]\text{ 对应信道空闲}\\
 -1, & a_n[t]\text{ 对应信道被占用}
 \end{cases}
-```
+$$
 
 也就是说，选到空闲信道给正奖励，选到被占用信道给负奖励。
 
 然后强化学习目标变成最大化长期累计奖励：
 
-```math
+$$
 P2:\quad \max_{a_n[t]}E\left[\sum_{t'=0}^{\infty}\gamma^{t'}r_n[t+t']\right]
-```
+$$
 
 这就是完整的 RL 建模：状态是信道置信度，动作是信道选择，奖励是感知成功与否。
 
@@ -216,9 +216,9 @@ P2:\quad \max_{a_n[t]}E\left[\sum_{t'=0}^{\infty}\gamma^{t'}r_n[t+t']\right]
 
 如果某个 SU 过去经常帮助当前 SU 做出正确判断，那么它就更可靠。论文用历史累计可靠性表示：
 
-```math
+$$
 \rho_{n,i}[t]=\sum_{t'=1}^{t_s}\gamma^{t'}r_n[t-t']I\{i[t-t']\in G_n\cup n\}
-```
+$$
 
 这里：
 
@@ -229,15 +229,15 @@ P2:\quad \max_{a_n[t]}E\left[\sum_{t'=0}^{\infty}\gamma^{t'}r_n[t+t']\right]
 
 为了避免一直只选老伙伴，论文还统计某个 SU 被选为伙伴的次数：
 
-```math
+$$
 \eta_{n,i}[t]=\sum_{t'=1}^{t_s}I\{i[t-t']\in G_n\}
-```
+$$
 
 最后，伙伴集合按下面方式更新：
 
-```math
-G_n[t]=\arg_{i\in N}sortmax_{N_{coop}}\left(\rho_{n,i}+\epsilon\frac{1}{\eta_{n,i}}\right)
-```
+$$
+G_n[t]=\arg_{i\in N}\operatorname{sortmax}_{N_{coop}}\left(\rho_{n,i}+\epsilon\frac{1}{\eta_{n,i}}\right)
+$$
 
 这相当于在“选可靠伙伴”和“探索新伙伴”之间做平衡。
 
@@ -247,17 +247,17 @@ G_n[t]=\arg_{i\in N}sortmax_{N_{coop}}\left(\rho_{n,i}+\epsilon\frac{1}{\eta_{n,
 
 选好伙伴以后，SU 会把自己和伙伴的信道判断做加权融合：
 
-```math
+$$
 b_{n,f}=\sum_{i\in\{G_n\cup n\}}\omega_{n,i}\bar{b}_{i,f}
-```
+$$
 
 权重由可靠性归一化得到：
 
-```math
+$$
 \omega_{n,i}[t]=
 \frac{\rho_{n,i}[t]}
 {\sum_{i'\in\{G_n\cup n\}}\rho_{n,i'}[t]}
-```
+$$
 
 这一步可以理解为：不是所有伙伴的信息都同样可信，历史上更可靠的 SU 说话权重更大。
 
@@ -273,9 +273,9 @@ Reliable Partner CSS 只考虑历史可靠性，但现实中还有一个问题�
 
 Adaptive Partner CSS 的奖励不再是简单的 `+1/-1`，而是用负的检测能量：
 
-```math
+$$
 r_n(s_n,a_n)=-u_{n,a_n}
-```
+$$
 
 检测能量越小，说明该信道越可能空闲，因此奖励越大。这个设计比二值奖励更细一些，因为它保留了能量检测结果的连续信息。
 
@@ -287,24 +287,24 @@ r_n(s_n,a_n)=-u_{n,a_n}
 
 论文把 attention critic 写成：
 
-```math
+$$
 Q_n^C(S,A)=\sum_{i=1}^{N}\tilde{\omega}_{n,i}Q_n^i(s_i,a_i|S,A)
-```
+$$
 
 其中 `\tilde{\omega}_{n,i}` 是当前 SU_n 对 SU_i 的注意力权重。
 
 注意力权重由 query 和 key 的相似度得到：
 
-```math
+$$
 \tilde{\omega}_{n,i}
 =softmax(e_n^TW_q^TW_ke_i)
-```
+$$
 
 再用注意力权重融合信道置信度：
 
-```math
+$$
 b_{n,f}=\sum_{i=1}^{N}\tilde{\omega}_{n,i}\bar{b}_{i,f}
-```
+$$
 
 这一步是本文比较有价值的地方。它把“伙伴选择”从人工规则变成了网络自动学习，同时还能通过注意力权重解释 SU 之间的依赖关系。
 
