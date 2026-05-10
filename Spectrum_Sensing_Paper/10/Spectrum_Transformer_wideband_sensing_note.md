@@ -40,7 +40,7 @@ y_n =
 所以整段宽带频谱的占用状态可以写成一个向量：
 
 \$$
-y=[y_1,y_2,\ldots,y_{N_f}]\in \{0,1\}^{N_f}
+y=$$y_1,y_2,\ldots,y_{N_f}$$\in \{0,1\}^{N_f}
 \$$
 
 接收端采样得到的宽带时域信号为：
@@ -79,21 +79,21 @@ s=FT(Corr(x))
 
 每个频段有 \(N_w\) 个频率采样点，因此第 \(n\) 个频段的 PSD 可以写成：
 
-\[
+\$$
 s_n\in \mathbb{R}^{N_w}
-\]
+\$$
 
 整段宽带 PSD 就是：
 
-\[
-s=[s_1,s_2,\ldots,s_{N_f}]\in \mathbb{R}^{N_fN_w}
-\]
+\$$
+s=$$s_1,s_2,\ldots,s_{N_f}$$\in \mathbb{R}^{N_fN_w}
+\$$
 
 从 AI 建模角度看，一条样本就是：
 
-\[
+\$$
 (s,y)
-\]
+\$$
 
 其中：
 
@@ -114,9 +114,9 @@ s=[s_1,s_2,\ldots,s_{N_f}]\in \mathbb{R}^{N_fN_w}
 
 可以理解为：
 
-\[
+\$$
 s_n \rightarrow y_n
-\]
+\$$
 
 也就是第 \(n\) 个频段自己的 PSD 形状可以帮助判断它是否被占用。
 
@@ -138,9 +138,9 @@ s_n \rightarrow y_n
 
 如果有 \(N_f\) 个频段，每个频段有占用和空闲两种状态，那么所有可能的频谱占用模式共有：
 
-\[
+\$$
 2^{N_f}
-\]
+\$$
 
 种。
 
@@ -149,41 +149,41 @@ s_n \rightarrow y_n
 
 所以作者没有采用“1024 类分类”这种方式，而是采用 **多任务学习**：
 
-\[
+\$$
 N_f \text{ 个频段} \Rightarrow N_f \text{ 个二分类任务}
-\]
+\$$
 
 也就是每个频段单独输出一个占用概率。
 
 这样模型输出为：
 
-\[
-\tilde{y}=[\tilde{y}_1,\tilde{y}_2,\ldots,\tilde{y}_{N_f}]
-\]
+\$$
+\tilde{y}=$$\tilde{y}_1,\tilde{y}_2,\ldots,\tilde{y}_{N_f}$$
+\$$
 
 其中：
 
-\[
+\$$
 \tilde{y}_n\in(0,1)
-\]
+\$$
 
 表示第 \(n\) 个频段被占用的概率。
 
 最后每个频段根据阈值判断：
 
-\[
+\$$
 \tilde{y}_n > \lambda \Rightarrow H_1
-\]
+\$$
 
-\[
+\$$
 \tilde{y}_n \leq \lambda \Rightarrow H_0
-\]
+\$$
 
 通常阈值可以取：
 
-\[
+\$$
 \lambda = 0.5
-\]
+\$$
 
 这个建模方式比普通多分类更合理，因为它的复杂度从“指数级类别数”变成了“线性数量的二分类任务”。
 
@@ -193,7 +193,7 @@ N_f \text{ 个频段} \Rightarrow N_f \text{ 个二分类任务}
 
 这篇论文的 AI 建模流程可以概括为：
 
-\[
+\$$
 \text{宽带时域信号 }x
 \rightarrow
 \text{PSD 特征 }s
@@ -203,7 +203,7 @@ N_f \text{ 个频段} \Rightarrow N_f \text{ 个二分类任务}
 \text{Transformer 学习频段内和频段间关系}
 \rightarrow
 \text{输出每个频段占用概率}
-\]
+\$$
 
 更具体地说，主要有四步。
 
@@ -213,17 +213,17 @@ N_f \text{ 个频段} \Rightarrow N_f \text{ 个二分类任务}
 
 原始 PSD 向量 \(s\) 被重新排列为矩阵：
 
-\[
-S=[s_1;s_2;\ldots;s_{N_f}]\in \mathbb{R}^{N_f\times N_w}
-\]
+\$$
+S=$$s_1;s_2;\ldots;s_{N_f}$$\in \mathbb{R}^{N_f\times N_w}
+\$$
 
 每一行对应一个频段的 PSD。
 
 为了降低计算量，论文使用一个可学习线性映射，将每个频段的 PSD 从 \(N_w\) 维压缩到 \(\bar{N}_w\) 维：
 
-\[
+\$$
 \bar{S}=SW_l
-\]
+\$$
 
 其中：
 
@@ -240,9 +240,9 @@ S=[s_1;s_2;\ldots;s_{N_f}]\in \mathbb{R}^{N_f\times N_w}
 
 所以作者加入可学习的位置编码：
 
-\[
+\$$
 \tilde{S}=\bar{S}+\tilde{S}_p
-\]
+\$$
 
 其中 \(\tilde{S}_p\) 是位置编码矩阵。
 
@@ -254,23 +254,23 @@ S=[s_1;s_2;\ldots;s_{N_f}]\in \mathbb{R}^{N_f\times N_w}
 
 Transformer Encoder 的核心是多头自注意力机制。这里每一行 PSD 片段可以看成一个“词”，也就是：
 
-\[
+\$$
 \tilde{s}_1,\tilde{s}_2,\ldots,\tilde{s}_{N_f}
-\]
+\$$
 
 每个 \(\tilde{s}_i\) 对应一个频段。
 
 自注意力会为每个频段生成 Query、Key、Value：
 
-\[
+\$$
 Q=\tilde{S}W_q,\quad K=\tilde{S}W_k,\quad V=\tilde{S}W_v
-\]
+\$$
 
 注意力输出为：
 
-\[
+\$$
 Z=Softmax\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-\]
+\$$
 
 这个式子可以直观理解成三步：
 
@@ -280,30 +280,30 @@ Z=Softmax\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 
 对于第 \(i\) 个频段，它和第 \(j\) 个频段的相关性可以写成：
 
-\[
+\$$
 a_i^j=\frac{1}{\sqrt{d_k}}q_ik_j^T
-\]
+\$$
 
 然后变成权重：
 
-\[
+\$$
 \alpha_i^j=\frac{e^{a_i^j}}{\sum_{j'=1}^{N_f}e^{a_i^{j'}}}
-\]
+\$$
 
 最后第 \(i\) 个频段的注意力输出为：
 
-\[
+\$$
 z_i=\sum_{j=1}^{N_f}\alpha_i^jv_j
-\]
+\$$
 
 这一步的物理含义很重要：  
 模型在判断某一个频段时，不只是看这个频段自己的 PSD，还会根据注意力权重参考其他频段的信息。这样就能利用功率泄漏、载波聚合带来的频段间依赖关系。
 
 多头注意力则是并行学习多组不同的相关关系：
 
-\[
-Z=[Z^1,Z^2,\ldots,Z^H]W_m
-\]
+\$$
+Z=$$Z^1,Z^2,\ldots,Z^H$$W_m
+\$$
 
 可以理解为：  
 不同注意力头分别关注不同类型的频谱关系，有的可能关注相邻频段泄漏，有的可能关注非连续频段聚合。
@@ -314,25 +314,25 @@ Z=[Z^1,Z^2,\ldots,Z^H]W_m
 
 Transformer Encoder 输出后，模型把特征展平，经过线性层和 Sigmoid，得到每个频段的占用概率：
 
-\[
+\$$
 \tilde{y}'=\tilde{z}W_o+b_o
-\]
+\$$
 
-\[
+\$$
 \tilde{y}_n=Sigmoid(\tilde{y}'_n)
-\]
+\$$
 
 最终输出：
 
-\[
-\tilde{y}=[\tilde{y}_1,\tilde{y}_2,\ldots,\tilde{y}_{N_f}]
-\]
+\$$
+\tilde{y}=$$\tilde{y}_1,\tilde{y}_2,\ldots,\tilde{y}_{N_f}$$
+\$$
 
 训练时使用二分类交叉熵损失，对所有频段一起训练：
 
-\[
-L_{BCE}=-\sum_{n=1}^{N_f}\left[y_n\log(\tilde{y}_n)+(1-y_n)\log(1-\tilde{y}_n)\right]
-\]
+\$$
+L_{BCE}=-\sum_{n=1}^{N_f}\left$$y_n\log(\tilde{y}_n)+(1-y_n)\log(1-\tilde{y}_n)\right$$
+\$$
 
 也就是说，模型不是只学一个总类别，而是同时学习 \(N_f\) 个频段的检测任务。
 
@@ -344,9 +344,9 @@ L_{BCE}=-\sum_{n=1}^{N_f}\left[y_n\log(\tilde{y}_n)+(1-y_n)\log(1-\tilde{y}_n)\r
 
 原始数据来源是宽带时域接收信号 \(x\)，但真正送入模型的是 PSD：
 
-\[
+\$$
 s=FT(Corr(x))
-\]
+\$$
 
 所以从模态角度看，它属于：
 
@@ -508,15 +508,15 @@ s=FT(Corr(x))
 
 这篇论文把宽带频谱感知建模为：
 
-\[
+\$$
 \text{PSD 输入} \rightarrow \text{多频段占用向量输出}
-\]
+\$$
 
 它没有把 \(N_f\) 个频段的所有占用组合当成 \(2^{N_f}\) 类，而是采用多任务学习，把每个频段当成一个二分类任务：
 
-\[
+\$$
 \tilde{y}_n = P(y_n=1|s)
-\]
+\$$
 
 这个建模方式更适合宽带频谱感知，因为它能避免类别数爆炸，同时还能通过共享 Transformer Encoder 学习不同频段之间的关系。
 
@@ -531,23 +531,23 @@ s=FT(Corr(x))
 
 它提供了一个清晰思路：
 
-\[
+\$$
 \text{频谱感知任务}
 \rightarrow
 \text{不是简单二分类}
 \rightarrow
 \text{可以建模成多任务频段占用预测}
-\]
+\$$
 
 如果进一步扩展，可以考虑：
 
-\[
+\$$
 \text{I/Q 时序特征}+\text{PSD 频域特征}+\text{时频图特征}
 \rightarrow
 \text{融合模型}
 \rightarrow
 \text{宽带频谱占用向量}
-\]
+\$$
 
 其中 Transformer 可以作为跨频段或跨模态关系建模模块。
 
